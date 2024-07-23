@@ -18,7 +18,6 @@ from pipen_gcs.utils import (
     upload_gs_file,
     upload_gs_dir,
     create_gs_dir,
-    InvalidGoogleStorageURIError,
 )
 from .conftest import BUCKET, dt
 
@@ -28,7 +27,7 @@ def test_mtime(bucket):
     assert _mtime(blob) == 0.0
 
     blob = bucket.get_blob("test.txt")
-    assert _mtime(blob) == 1609488000.0
+    assert _mtime(blob) == dt(2021, 1, 1)
 
 
 @pytest.mark.parametrize(
@@ -78,6 +77,7 @@ def test_download_gs_file(bucket, tmp_path):
     blob = bucket.get_blob("test.txt")
     assert tmpfile.stat().st_mtime == _mtime(blob)
 
+
 def test_download_gs_dir(bucket, tmp_path):
     tmpdir = tmp_path / "testdir"
     download_gs_dir(bucket.client, f"gs://{BUCKET}/testdir2/", tmpdir)
@@ -105,10 +105,10 @@ def test_download_gs_dir(bucket, tmp_path):
 
 
 def test_get_gs_mtime(bucket):
-    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/test.txt", 1) == 1609488000.0
-    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir/", 1) == 1609660800.0
-    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir2/", 1) == 1609833600.0
-    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir2/", 3) == 1610006400.0
+    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/test.txt", 1) == dt(2021, 1, 1)
+    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir/", 1) == dt(2021, 1, 3)
+    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir2/", 1) == dt(2021, 1, 5)
+    assert get_gs_mtime(bucket.client, f"gs://{BUCKET}/testdir2/", 3) == dt(2021, 1, 7)
 
 
 def test_clear_gs_file(bucket):

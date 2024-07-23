@@ -806,13 +806,13 @@ files = [
 
 [[package]]
 name = "importlib-metadata"
-version = "8.0.0"
+version = "8.1.0"
 description = "Read metadata from Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "importlib_metadata-8.0.0-py3-none-any.whl", hash = "sha256:15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f"},
-    {file = "importlib_metadata-8.0.0.tar.gz", hash = "sha256:188bd24e4c346d3f0a933f275c2fec67050326a856b9a359881d7c2a697e8812"},
+    {file = "importlib_metadata-8.1.0-py3-none-any.whl", hash = "sha256:3cd29f739ed65973840b068e3132135ce954c254d48b5b640484467ef7ab3c8c"},
+    {file = "importlib_metadata-8.1.0.tar.gz", hash = "sha256:fcdcb1d5ead7bdf3dd32657bb94ebe9d2aabfe89a19782ddc32da5041d6ebfb4"},
 ]
 
 [package.dependencies]
@@ -1337,13 +1337,13 @@ executing = ">=2.0,<3.0"
 
 [[package]]
 name = "pipen"
-version = "0.15.0rc2"
+version = "0.15.0"
 description = "A pipeline framework for python"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "pipen-0.15.0rc2-py3-none-any.whl", hash = "sha256:5dd5d821ac254cfc18afcc45c66155ab9c6acdc244ab2335063f4c505874f4a8"},
-    {file = "pipen-0.15.0rc2.tar.gz", hash = "sha256:7a9badaab60adc581db58d017b4368aa141fec1ef5f18876008fa049ee4594fd"},
+    {file = "pipen-0.15.0-py3-none-any.whl", hash = "sha256:ce5ddf0fadc59c967a73ef8371d4748611b70b8c52d8fb54e5167ad5714cd0da"},
+    {file = "pipen-0.15.0.tar.gz", hash = "sha256:d04b000536eb621cdbf7c32a4dfc0cd7c0ca43690f9d980f606aebb0ef3730db"},
 ]
 
 [package.dependencies]
@@ -1355,7 +1355,7 @@ pipda = ">=0.13,<0.14"
 python-simpleconf = {version = ">=0.6,<0.7", extras = ["toml"]}
 rtoml = ">=0.8,<0.9"
 varname = ">=0.13,<0.14"
-xqute = ">=0.4.0,<0.5.0"
+xqute = ">=0.4.1,<0.5.0"
 
 [[package]]
 name = "platformdirs"
@@ -2175,4 +2175,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "c7b1ca68bbd5815d786bb346a93aef07402c7656af4024410d758b38e1125d44"
+content-hash = "942d383c1a87f7d61375047781a91162ae6493ad0d592ff79914d73884ecc0e9"

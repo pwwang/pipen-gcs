@@ -287,6 +287,7 @@ def upload_gs_dir(
         gs_uri (str): The URI of the directory in Google Cloud Storage
     """
     bucket, path = parse_gcs_uri(gs_uri)
+    path = path.rstrip("/") + "/"
     bucket = client.get_bucket(bucket)
     for localfile in Path(localpath).rglob("*"):
         if localfile.is_dir():

@@ -20,7 +20,7 @@ from pipen_gcs.utils import (
     create_gs_dir,
     InvalidGoogleStorageURIError,
 )
-from .conftest import BUCKET
+from .conftest import BUCKET, dt
 
 
 def test_mtime(bucket):
@@ -131,7 +131,7 @@ def test_clear_gs_dir(bucket):
 def test_upload_gs_file(bucket, tmp_path):
     tmpfile = tmp_path / "testx.txt"
     tmpfile.write_text("test12")
-    mtime = datetime(2021, 1, 1).timestamp()
+    mtime = dt(2021, 1, 1)
     os.utime(tmpfile, (mtime, mtime))
 
     upload_gs_file(bucket.client, tmpfile, f"gs://{BUCKET}/test_to_upload.txt")
@@ -172,7 +172,7 @@ def test_upload_gs_dir(bucket, tmp_path):
     (tmpdir / "test2").mkdir()
     (tmpdir / "test2" / "test2.txt").write_text("test2")
     (tmpdir / "test2" / "test3.txt").write_text("test3")
-    mtime = datetime.now().timestamp() + 100
+    mtime = datetime.now().timestamp() + 86400
     os.utime((tmpdir / "test2" / "test3.txt"), (mtime, mtime))
 
     upload_gs_dir(bucket.client, tmpdir, f"gs://{BUCKET}/testdir_to_upload/")

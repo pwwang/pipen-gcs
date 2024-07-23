@@ -1,11 +1,16 @@
 import os
 import json
+import pytz
 import pytest
 from datetime import datetime
 from google.cloud import storage
 from dotenv import load_dotenv
 
 BUCKET = "handy-buffer-287000.appspot.com"
+
+
+def dt(y, m, d) -> float:
+    return datetime(y, m, d, tzinfo=pytz.UTC).timestamp()
 
 
 @pytest.fixture(scope="session")
@@ -35,23 +40,23 @@ def bucket(tmpdir_factory):
 @pytest.fixture(scope="session", autouse=True)
 def init_gs_files(bucket):
     blob = bucket.blob("test.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 1).timestamp()}  # 1609488000.0
+    blob.metadata = {"mtime": dt(2021, 1, 1)}  # 1609459200.0
     blob.upload_from_string("test1")
     blob = bucket.blob("testdir/test1.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 2).timestamp()}  # 1609574400.0
+    blob.metadata = {"mtime": dt(2021, 1, 2)}  # 1609545600.0
     blob.upload_from_string("test2")
     blob = bucket.blob("testdir/test2.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 3).timestamp()}  # 1609660800.0
+    blob.metadata = {"mtime": dt(2021, 1, 3)}  # 1609632000.0
     blob.upload_from_string("test3")
     blob = bucket.blob("testdir2/test9.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 4).timestamp()}  # 1609747200.0
+    blob.metadata = {"mtime": dt(2021, 1, 4)}  # 1609718400.0
     blob.upload_from_string("test9")
     blob = bucket.blob("testdir2/test2/")
-    blob.metadata = {"mtime": datetime(2021, 1, 5).timestamp()}  # 1609833600.0
+    blob.metadata = {"mtime": dt(2021, 1, 5)}  # 1609804800.0
     blob.upload_from_string("", content_type="application/x-directory")
     blob = bucket.blob("testdir2/test2/test1.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 6).timestamp()}  # 1609920000.0
+    blob.metadata = {"mtime": dt(2021, 1, 6)}  # 1609891200.0
     blob.upload_from_string("test4")
     blob = bucket.blob("testdir2/test2/test2.txt")
-    blob.metadata = {"mtime": datetime(2021, 1, 7).timestamp()}  # 1610006400.0
+    blob.metadata = {"mtime": dt(2021, 1, 7)}  # 1609977600.0
     blob.upload_from_string("test5")

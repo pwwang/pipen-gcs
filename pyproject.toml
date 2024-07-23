@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "pipen-gcs"
+version = "0.0.0"
+description = "A plugin for pipen to handle file metadata in Google Cloud Storage"
+authors = ["pwwang <1188067+pwwang@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.build]
+generate-setup-file = true
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pipen = "^0.15.0"
+google-cloud-storage = "^2.17.0"
+
+[tool.poetry.plugins.pipen]
+gcs = "pipen_gcs:PipenGcsPlugin"
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+pytest = "^8"
+pytest-cov = "^5.0.0"
+pytest-forked = "^1.6.0"
+pytest-xdist = "^3"
+
+[tool.poetry.group.extra.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "-vv -n 1 --cov-config=.coveragerc --cov=pipen_gcs --cov-report xml:.coverage.xml --cov-report term-missing"
+console_output_style = "progress"
+junit_family = "xunit1"
+filterwarnings = []

@@ -20,7 +20,7 @@ class MyProc(Proc):
     input = "infile:file"
     input_data = ["gs://bucket/path/to/file"]
     output = "outfile:file:gs://bucket/path/to/output"
-    script = "cat {{infile}} > {{outfile}}"
+    script = "cat {{in.infile}} > {{out.outfile}}"
 
 class MyPipen(Pipen):
     starts = MyProc
@@ -43,7 +43,7 @@ class MyProc(Proc):
     input = "infile:file"
     input_data = ["gs://bucket/path/to/file"]
     output = "outfile:file:gs://bucket/path/to/output"
-    script = "gsutil cp {{infile}} {{outfile}}"
+    script = "gsutil cp {{in.infile}} {{out.outfile}}"
 
 class MyPipen(Pipen):
     starts = MyProc

@@ -43,7 +43,7 @@ def test_pipeline_localize(bucket, tmp_path, caplog):
         loglevel="DEBUG",
         plugin_opts={
             "gcs_credentials": os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-            "gs_localize": tmp_path / "gslocal",
+            "gcs_localize": tmp_path / "gslocal",
         },
     ).set_start(TestProc)
     p.run()
@@ -73,7 +73,7 @@ def test_pipeline_in_nonexist_gsfile(tmp_path):
         input_data = [infile]
         output = "outfile:file:out.txt"
         script = "cp {{in.infile}} {{out.outfile}}"
-        plugin_opts = {"gs_localize": tmp_path / "gslocal"}
+        plugin_opts = {"gcs_localize": tmp_path / "gslocal"}
 
     with pytest.raises(InvalidGoogleStorageURIError, match="Input path not exists"):
         Pipen(
@@ -91,7 +91,7 @@ def test_pipeline_in_bucket_gsfile(tmp_path):
         input_data = [infile]
         output = "outfile:file:out.txt"
         script = "cp {{in.infile}} {{out.outfile}}"
-        plugin_opts = {"gs_localize": tmp_path / "gslocal"}
+        plugin_opts = {"gcs_localize": tmp_path / "gslocal"}
 
     with pytest.raises(
         InvalidGoogleStorageURIError,
@@ -199,7 +199,7 @@ def test_pipeline_non_localize(bucket, tmp_path, caplog):
         outdir=tmp_path / "outdir",
         plugin_opts={
             "gcs_credentials": os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-            "gs_localize": False,
+            "gcs_localize": False,
         },
     ).set_start(TestProc)
     p.run()
@@ -243,7 +243,7 @@ def test_pipeline_mixed_input_to_local(tmp_path):
         outdir=tmp_path / "outdir",
         plugin_opts={
             "gcs_credentials": os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-            "gs_localize": tmp_path / "gslocal",
+            "gcs_localize": tmp_path / "gslocal",
         },
     ).set_start(TestProc)
     p.run()
@@ -296,7 +296,7 @@ def test_pipeline_mixed_input_to_cloud(bucket, tmp_path):
         outdir=tmp_path / "outdir",
         plugin_opts={
             "gcs_credentials": os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-            "gs_localize": False,
+            "gcs_localize": False,
         },
     ).set_start(TestProc)
     p.run()

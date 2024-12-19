@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 
 from typing import TYPE_CHECKING
 from pathlib import Path
@@ -68,7 +69,12 @@ class PipenGcsPlugin:
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = plugin_opts[
                 "gcs_credentials"
             ]
-        self.gclient = storage.Client()
+
+        with warnings.catch_warnings(record=True) as warns:
+            warnings.simplefilter("always", UserWarning)
+            self.gclient = storage.Client()
+            for warn in warns:
+                logger.warning(str(warn.message))
 
     @plugin.impl
     def norm_inpath(self, job, inpath, is_dir):

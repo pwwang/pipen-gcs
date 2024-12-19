@@ -40,10 +40,10 @@ class PipenGcsPlugin:
     """A plugin for pipen to handle file metadata in Google Cloud Storage
 
     Configurations:
-        gs_localize: False or a directory to download files to and upload back
+        gcs_localize: False or a directory to download files to and upload back
             the output files. If False, the plugin will not download or upload
             files. The job script should handle the files in the cloud.
-        gs_credentials: The path to the Google Cloud Storage credentials file.
+        gcs_credentials: The path to the Google Cloud Storage credentials file.
     """
 
     version = __version__
@@ -85,7 +85,7 @@ class PipenGcsPlugin:
             return None
 
         plugin_opts = job.proc.plugin_opts or {}
-        gs_localize = plugin_opts.get("gs_localize", False)
+        gcs_localize = plugin_opts.get("gcs_localize", False)
 
         gstype = get_gs_type(self.gclient, inpath)
         if gstype == "none":
@@ -98,13 +98,13 @@ class PipenGcsPlugin:
                 f"{inpath}"
             )
 
-        if not gs_localize:
+        if not gcs_localize:
             return inpath
 
-        gs_localize = Path(gs_localize)
+        gcs_localize = Path(gcs_localize)
         # Download the file to local
         bucket, path = parse_gcs_uri(inpath)
-        localpath = gs_localize.joinpath(bucket, path)
+        localpath = gcs_localize.joinpath(bucket, path)
         job.log("info", f"Localizing {inpath} ...", logger=logger)
         if is_dir:
             download_gs_dir(self.gclient, inpath, localpath)
@@ -122,7 +122,7 @@ class PipenGcsPlugin:
             return None
 
         plugin_opts = job.proc.plugin_opts or {}
-        gs_localize = plugin_opts.get("gs_localize", False)
+        gcs_localize = plugin_opts.get("gcs_localize", False)
 
         gstype = get_gs_type(self.gclient, outpath)
         if gstype == "bucket":
@@ -131,12 +131,12 @@ class PipenGcsPlugin:
                 f"{outpath}"
             )
 
-        if not gs_localize:
+        if not gcs_localize:
             return outpath
 
-        gs_localize = Path(gs_localize)
+        gcs_localize = Path(gcs_localize)
         bucket, path = parse_gcs_uri(outpath)
-        localpath = gs_localize.joinpath(bucket, path)
+        localpath = gcs_localize.joinpath(bucket, path)
         if is_dir:
             outpath = outpath.rstrip("/") + "/"
             create_gs_dir(self.gclient, outpath)

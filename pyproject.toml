@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipen-gcs"
-version = "0.0.2"
+version = "0.0.3"
 description = "A plugin for pipen to handle file metadata in Google Cloud Storage"
 authors = ["pwwang <1188067+pwwang@users.noreply.github.com>"]
 license = "MIT"

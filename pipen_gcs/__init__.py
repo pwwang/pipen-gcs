@@ -32,7 +32,7 @@ from .utils import (
 if TYPE_CHECKING:
     from pipen import Pipen
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 logger = get_logger("gcs")
 
 

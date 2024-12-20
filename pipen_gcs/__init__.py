@@ -78,7 +78,7 @@ class PipenGcsPlugin:
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter("always", UserWarning)
             self.gclient = storage.Client()
-            for warn in warns:
+            for warn in warns:  # pragma: no cover
                 logger.warning(str(warn.message))
 
     @plugin.impl

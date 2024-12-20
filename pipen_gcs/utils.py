@@ -26,7 +26,12 @@ def _mtime(blob: storage.Blob) -> float:
     """
     if blob.metadata and "mtime" in blob.metadata:
         return float(blob.metadata["mtime"])
-    return blob.updated.timestamp() if blob.updated else 0.0
+
+    return (
+        blob.updated.timestamp() if blob.updated
+        else blob.time_created.timestamp() if blob.time_created
+        else 0.0
+    )
 
 
 def parse_gcs_uri(uri: str) -> tuple[str, str]:
@@ -120,21 +125,30 @@ def get_plugin_data(job: Job, key: str, default: Any = None) -> Any:
 
 def download_gs_file(
     client: storage.Client,
-    gs_uri: str,
+    gs_uri: str | storage.Blob,
     localpath: str | Path,
+    force: bool = False,
 ) -> None:
     """Download a file from Google Cloud Storage
 
     Args:
         client (storage.Client): The Google Cloud Storage client
-        gs_uri (str): The URI of the file in Google Cloud Storage
+        gs_uri (str): The URI of the file in Google Cloud Storage or the blob
         localpath (str | Path): The local path to download
     """
-    bucket, path = parse_gcs_uri(gs_uri)
-    blob = client.get_bucket(bucket).get_blob(path)
+    if isinstance(gs_uri, storage.Blob):
+        blob = gs_uri
+    else:
+        bucket, path = parse_gcs_uri(gs_uri)
+        blob = client.get_bucket(bucket).get_blob(path)
+
+    mtime = _mtime(blob)
+    localpath = Path(localpath)
+    if not force and localpath.exists() and localpath.stat().st_mtime >= mtime:
+        return
+
     Path(localpath).parent.mkdir(parents=True, exist_ok=True)
     blob.download_to_filename(str(localpath))
-    mtime = _mtime(blob)
     os.utime(localpath, (mtime, mtime))
 
 
@@ -142,6 +156,7 @@ def download_gs_dir(
     client: storage.Client,
     gs_uri: str,
     localpath: str | Path,
+    force: bool = False,
 ) -> None:
     """Download a file from Google Cloud Storage
 
@@ -159,12 +174,11 @@ def download_gs_dir(
         localfile = Path(localpath).joinpath(blob.name[len(path):])
         if blob.name.endswith("/"):
             localfile.mkdir(parents=True, exist_ok=True)
+            mtime = _mtime(blob)
+            os.utime(localfile, (mtime, mtime))
         else:
             localfile.parent.mkdir(parents=True, exist_ok=True)
-            blob.download_to_filename(localfile)
-
-        mtime = _mtime(blob)
-        os.utime(localfile, (mtime, mtime))
+            download_gs_file(client, blob, localfile, force)
 
 
 def get_gs_mtime(client: storage.Client, gs_uri: str, dir_depth: int) -> float:

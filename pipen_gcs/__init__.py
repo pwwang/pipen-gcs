@@ -44,6 +44,8 @@ class PipenGcsPlugin:
             the output files. If False, the plugin will not download or upload
             files. The job script should handle the files in the cloud.
         gcs_credentials: The path to the Google Cloud Storage credentials file.
+        gcs_localize_force: Whether to force localize the files even if they
+            are already in the local directory.
     """
 
     version = __version__
@@ -59,6 +61,9 @@ class PipenGcsPlugin:
         pipen.config.plugin_opts.setdefault("gcs_localize", False)
         # Google Cloud Storage credentials, otherwise you need to login manually
         pipen.config.plugin_opts.setdefault("gcs_credentials", None)
+        # Whether to force localize the files even if they are already in the local
+        # directory
+        pipen.config.plugin_opts.setdefault("gcs_localize_force", False)
 
     @plugin.impl
     async def on_start(self, pipen: Pipen) -> None:
@@ -86,6 +91,7 @@ class PipenGcsPlugin:
 
         plugin_opts = job.proc.plugin_opts or {}
         gcs_localize = plugin_opts.get("gcs_localize", False)
+        gcs_localize_force = plugin_opts.get("gcs_localize_force", False)
 
         gstype = get_gs_type(self.gclient, inpath)
         if gstype == "none":
@@ -107,9 +113,9 @@ class PipenGcsPlugin:
         localpath = gcs_localize.joinpath(bucket, path)
         job.log("info", f"Localizing {inpath} ...", logger=logger)
         if is_dir:
-            download_gs_dir(self.gclient, inpath, localpath)
+            download_gs_dir(self.gclient, inpath, localpath, gcs_localize_force)
         else:
-            download_gs_file(self.gclient, inpath, localpath)
+            download_gs_file(self.gclient, inpath, localpath, gcs_localize_force)
 
         return localpath
 

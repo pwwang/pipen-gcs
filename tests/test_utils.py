@@ -78,6 +78,45 @@ def test_download_gs_file(bucket, tmp_path):
     assert tmpfile.stat().st_mtime == _mtime(blob)
 
 
+def test_download_gs_file_cache(bucket, tmp_path):
+    tmpfile = tmp_path / "testx.txt"
+    tmpfile.write_text("testx")
+    upload_gs_file(bucket.client, tmpfile, f"gs://{BUCKET}/testx.txt")
+    download_gs_file(bucket.client, f"gs://{BUCKET}/testx.txt", tmpfile)
+    assert tmpfile.read_text() == "testx"
+    mtime = tmpfile.stat().st_mtime
+    blob = bucket.get_blob("testx.txt")
+    assert mtime == _mtime(blob)
+
+    tmpfile2 = tmp_path / "new" / "testx.txt"
+    tmpfile2.parent.mkdir()
+    tmpfile2.write_text("testx")
+    os.utime(tmpfile2, (mtime - 100, mtime - 100))
+    # update mtime on cloud
+    upload_gs_file(bucket.client, tmpfile2, f"gs://{BUCKET}/testx.txt")
+    download_gs_file(bucket.client, f"gs://{BUCKET}/testx.txt", tmpfile, force=False)
+    # mtime should not change
+    assert mtime == tmpfile.stat().st_mtime
+
+    download_gs_file(bucket.client, f"gs://{BUCKET}/testx.txt", tmpfile, force=True)
+    # mtime should change
+    assert mtime != tmpfile.stat().st_mtime
+
+
+def test_download_gs_file_cache_naive_file(bucket, tmp_path):
+    """No meta data on the file"""
+    tmpfile = tmp_path / "naive.txt"
+    download_gs_file(bucket.client, f"gs://{BUCKET}/naive.txt", tmpfile)
+    mtime = tmpfile.stat().st_mtime
+    assert mtime > 0
+
+    # make local file newer
+    os.utime(tmpfile, (mtime + 100, mtime + 100))
+    # without force, it should not download
+    download_gs_file(bucket.client, f"gs://{BUCKET}/naive.txt", tmpfile, force=False)
+    assert mtime + 100 == tmpfile.stat().st_mtime
+
+
 def test_download_gs_dir(bucket, tmp_path):
     tmpdir = tmp_path / "testdir"
     download_gs_dir(bucket.client, f"gs://{BUCKET}/testdir2/", tmpdir)
@@ -102,6 +141,37 @@ def test_download_gs_dir(bucket, tmp_path):
 
     test22_blob = bucket.get_blob("testdir2/test2/test2.txt")
     assert t22.stat().st_mtime == _mtime(test22_blob)
+
+
+def test_download_gs_dir_cache(bucket, tmp_path):
+    tmpdir = tmp_path / "testdirx"
+    tmpdir.mkdir()
+    (tmpdir / "test1.txt").write_text("test1")
+    (tmpdir / "test2").mkdir()
+    (tmpdir / "test2" / "test2.txt").write_text("test2")
+    (tmpdir / "test2" / "test3.txt").write_text("test3")
+    upload_gs_dir(bucket.client, tmpdir, f"gs://{BUCKET}/testdirx/")
+    download_gs_dir(bucket.client, f"gs://{BUCKET}/testdirx/", tmpdir)
+    assert (tmpdir / "test1.txt").read_text() == "test1"
+    assert (tmpdir / "test2" / "test2.txt").read_text() == "test2"
+    assert (tmpdir / "test2" / "test3.txt").read_text() == "test3"
+    mtime = (tmpdir / "test2" / "test3.txt").stat().st_mtime
+    blob = bucket.get_blob("testdirx/test2/test3.txt")
+    assert mtime == _mtime(blob)
+
+    tmpdir2 = tmp_path / "new" / "testdirx"
+    tmpdir2.mkdir(parents=True)
+    (tmpdir2 / "test1.txt").write_text("test1")
+    (tmpdir2 / "test2").mkdir()
+    (tmpdir2 / "test2" / "test2.txt").write_text("test2")
+    (tmpdir2 / "test2" / "test3.txt").write_text("test3")
+    os.utime((tmpdir2 / "test2" / "test3.txt"), (mtime - 100, mtime - 100))
+    upload_gs_dir(bucket.client, tmpdir2, f"gs://{BUCKET}/testdirx/")
+    download_gs_dir(bucket.client, f"gs://{BUCKET}/testdirx/", tmpdir, force=False)
+    assert (tmpdir / "test2" / "test3.txt").stat().st_mtime == mtime
+
+    download_gs_dir(bucket.client, f"gs://{BUCKET}/testdirx/", tmpdir, force=True)
+    assert (tmpdir / "test2" / "test3.txt").stat().st_mtime != mtime
 
 
 def test_get_gs_mtime(bucket):

@@ -57,6 +57,8 @@ if __name__ == "__main__":
 
 - `gcs_localize`: The directory to localize the cloud storage files. If
   set to `False`, the files will not be localized. Default is `False`.
+- `gcs_localize_force`: If set to `True`, the files will be localized
+  even if they exist locally. Default is `False`.
 - `gcs_credentials`: The path to the Google Cloud Service Account
   credentials file.
 

@@ -2,8 +2,10 @@ import os
 from datetime import datetime
 
 import pytest
+from google.cloud import storage
 from pipen_gcs.utils import (
     _mtime,
+    _get_bucket,
     parse_gcs_uri,
     get_gs_type,
     update_plugin_data,
@@ -18,6 +20,7 @@ from pipen_gcs.utils import (
     upload_gs_file,
     upload_gs_dir,
     create_gs_dir,
+    InvalidGoogleStorageURIError,
 )
 from .conftest import BUCKET, dt
 
@@ -28,6 +31,12 @@ def test_mtime(bucket):
 
     blob = bucket.get_blob("test.txt")
     assert _mtime(blob) == dt(2021, 1, 1)
+
+
+def test_get_bucket(bucket):
+    assert isinstance(_get_bucket(bucket.client, BUCKET), storage.Bucket)
+    with pytest.raises(InvalidGoogleStorageURIError):
+        _get_bucket(bucket.client, "gs://")
 
 
 @pytest.mark.parametrize(

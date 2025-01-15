@@ -15,6 +15,22 @@ class InvalidGoogleStorageURIError(Exception):
     """Invalid Google Cloud Storage URI"""
 
 
+def _get_bucket(client: storage.Client, bucket: str) -> storage.Bucket:
+    """Get a bucket from the client
+
+    Args:
+        client (storage.Client): The Google Cloud Storage client
+        bucket (str): The name of the bucket
+
+    Returns:
+        storage.Bucket: The bucket
+    """
+    try:
+        return client.get_bucket(bucket)
+    except ValueError as e:
+        raise InvalidGoogleStorageURIError(repr(f"gs://{bucket}")) from e
+
+
 def _mtime(blob: storage.Blob) -> float:
     """Get the modification time of a blob
 
@@ -81,7 +97,7 @@ def get_gs_type(client: storage.Client, gs_uri: str) -> str:
     if not path:
         return "bucket"
 
-    bucket = client.get_bucket(bucket)
+    bucket = _get_bucket(client, bucket)
     blob = bucket.get_blob(path)
     if blob:
         return "dir" if blob.name.endswith("/") else "file"
@@ -140,7 +156,7 @@ def download_gs_file(
         blob = gs_uri
     else:
         bucket, path = parse_gcs_uri(gs_uri)
-        blob = client.get_bucket(bucket).get_blob(path)
+        blob = _get_bucket(client, bucket).get_blob(path)
 
     mtime = _mtime(blob)
     localpath = Path(localpath)
@@ -167,7 +183,7 @@ def download_gs_dir(
     """
     bucket, path = parse_gcs_uri(gs_uri)
     path = path.rstrip("/") + "/"
-    bucket = client.get_bucket(bucket)
+    bucket = _get_bucket(client, bucket)
     blobs = bucket.list_blobs(prefix=path)
 
     for blob in reversed(list(blobs)):
@@ -194,7 +210,7 @@ def get_gs_mtime(client: storage.Client, gs_uri: str, dir_depth: int) -> float:
     """
     gstype = get_gs_type(client, gs_uri)  # file or dir, check when pipeline starts
     bucket, path = parse_gcs_uri(gs_uri)
-    bucket = client.get_bucket(bucket)
+    bucket = _get_bucket(client, bucket)
     blob = bucket.get_blob(path)
     if gstype == "file" or dir_depth == 0:
         return _mtime(blob)
@@ -219,7 +235,7 @@ def clear_gs_file(client: storage.Client, gs_uri: str) -> bool:
         gs_uri (str): The URI of the file in Google Cloud Storage
     """
     bucket, path = parse_gcs_uri(gs_uri)
-    blob = client.get_bucket(bucket).get_blob(path)
+    blob = _get_bucket(client, bucket).get_blob(path)
     if blob:
         blob.delete()
     return True
@@ -234,7 +250,7 @@ def clear_gs_dir(client: storage.Client, gs_uri: str) -> bool:
     """
     bucket, path = parse_gcs_uri(gs_uri)
     path = path.rstrip("/") + "/"
-    bucket = client.get_bucket(bucket)
+    bucket = _get_bucket(client, bucket)
     blobs = bucket.list_blobs(prefix=path)
     # reversed to delete files first
     for blob in reversed(list(blobs)):
@@ -283,7 +299,7 @@ def upload_gs_file(
         gs_uri (str): The URI of the file in Google Cloud Storage
     """
     bucket, path = parse_gcs_uri(gs_uri)
-    blob = client.get_bucket(bucket).blob(path)
+    blob = _get_bucket(client, bucket).blob(path)
     blob.metadata = {"mtime": Path(localpath).stat().st_mtime}
     blob.upload_from_filename(str(localpath))
 
@@ -302,7 +318,7 @@ def upload_gs_dir(
     """
     bucket, path = parse_gcs_uri(gs_uri)
     path = path.rstrip("/") + "/"
-    bucket = client.get_bucket(bucket)
+    bucket = _get_bucket(client, bucket)
     for localfile in Path(localpath).rglob("*"):
         if localfile.is_dir():
             continue
@@ -323,5 +339,5 @@ def create_gs_dir(client: storage.Client, gs_uri: str) -> None:
         return
     bucket, path = parse_gcs_uri(gs_uri)
     path = path.rstrip("/") + "/"
-    blob = client.get_bucket(bucket).blob(path)
+    blob = _get_bucket(client, bucket).blob(path)
     blob.upload_from_string("", content_type="application/x-directory")

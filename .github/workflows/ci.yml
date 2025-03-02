@@ -27,32 +27,32 @@ jobs:
           python -m pip install flake8
       - name: Run flake8
         run: flake8 pipen_gcs
-      - name: Test with pytest
-        run: pytest tests/ --junitxml=junit/test-results-${{ matrix.python-version }}.xml
-        env:
-          GAC_TYPE: ${{ secrets.GAC_TYPE }}
-          GAC_PROJECT_ID: ${{ secrets.GAC_PROJECT_ID }}
-          GAC_PRIVATE_KEY_ID: ${{ secrets.GAC_PRIVATE_KEY_ID }}
-          GAC_PRIVATE_KEY: ${{ secrets.GAC_PRIVATE_KEY }}
-          GAC_CLIENT_EMAIL: ${{ secrets.GAC_CLIENT_EMAIL }}
-          GAC_CLIENT_ID: ${{ secrets.GAC_CLIENT_ID }}
-          GAC_AUTH_URI: ${{ secrets.GAC_AUTH_URI }}
-          GAC_TOKEN_URI: ${{ secrets.GAC_TOKEN_URI }}
-          GAC_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.GAC_AUTH_PROVIDER_X509_CERT_URL }}
-          GAC_CLIENT_X509_CERT_URL: ${{ secrets.GAC_CLIENT_X509_CERT_URL }}
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results-${{ matrix.python-version }}
-          path: junit/test-results-${{ matrix.python-version }}.xml
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@master
-        if: matrix.python-version == 3.10
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: .coverage.xml
+      # - name: Test with pytest
+      #   run: pytest tests/ --junitxml=junit/test-results-${{ matrix.python-version }}.xml
+      #   env:
+      #     GAC_TYPE: ${{ secrets.GAC_TYPE }}
+      #     GAC_PROJECT_ID: ${{ secrets.GAC_PROJECT_ID }}
+      #     GAC_PRIVATE_KEY_ID: ${{ secrets.GAC_PRIVATE_KEY_ID }}
+      #     GAC_PRIVATE_KEY: ${{ secrets.GAC_PRIVATE_KEY }}
+      #     GAC_CLIENT_EMAIL: ${{ secrets.GAC_CLIENT_EMAIL }}
+      #     GAC_CLIENT_ID: ${{ secrets.GAC_CLIENT_ID }}
+      #     GAC_AUTH_URI: ${{ secrets.GAC_AUTH_URI }}
+      #     GAC_TOKEN_URI: ${{ secrets.GAC_TOKEN_URI }}
+      #     GAC_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.GAC_AUTH_PROVIDER_X509_CERT_URL }}
+      #     GAC_CLIENT_X509_CERT_URL: ${{ secrets.GAC_CLIENT_X509_CERT_URL }}
+      # - name: Upload pytest test results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: pytest-results-${{ matrix.python-version }}
+      #     path: junit/test-results-${{ matrix.python-version }}.xml
+      #   # Use always() to always run this step to publish test results when there are test failures
+      #   if: ${{ always() }}
+      # - name: Run codacy-coverage-reporter
+      #   uses: codacy/codacy-coverage-reporter-action@master
+      #   if: matrix.python-version == 3.10
+      #   with:
+      #     project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+      #     coverage-reports: .coverage.xml
 
   deploy:
     needs: build

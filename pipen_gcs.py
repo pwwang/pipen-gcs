@@ -194,3 +194,6 @@ class PipenGcsPlugin:
             job.log("info", f"Uploading: {job.output[outkey]}", logger=logger)
             spec_out = self.client.CloudPath(spec_out)
             spec_out._upload_local_to_cloud(force_overwrite_to_cloud=True)
+
+
+plugin.register(PipenGcsPlugin())

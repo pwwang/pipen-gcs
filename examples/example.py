@@ -1,4 +1,5 @@
 import os
+import pipen_gcs  # noqa: F401
 from pipen import Pipen, Proc
 from dotenv import load_dotenv
 

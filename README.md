@@ -22,6 +22,7 @@ pip install -U pipen-gcs
 
 ```python
 from pipen import Proc, Pipen
+import pipen_gcs  # Import and enable the plugin
 
 class MyProc(Proc):
     input = "infile:file"

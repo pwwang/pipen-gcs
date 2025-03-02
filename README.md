@@ -2,11 +2,13 @@
 
 A plugin for [pipen][1] to handle files in Google Cloud Storage.
 
-> [!NOTE] Since pipen v0.16.0, it introduced cloud support natively. See [here](https://pwwang.github.io/pipen/cloud/) for more information.
+> [!NOTE]
+> Since pipen v0.16.0, it introduced cloud support natively. See [here](https://pwwang.github.io/pipen/cloud/) for more information.
 > However, when the pipeline working directory is a local path, but the input/output files are in the cloud, we need to handle the cloud files ourselves and in the job script.
 > To avoid that, we can use this plugin to download the input files and upload the output files automatically.
 
-> [!NOTE] Also note that this plugin does not synchronize the meta files to the cloud storage; they are already handled by pipen when needed. This plugin only handles the input/output files when the working directory is a local path. When the pipeline output directory is a cloud path, the output files will be uploaded to the cloud storage automatically.
+> [!NOTE]
+> Also note that this plugin does not synchronize the meta files to the cloud storage; they are already handled by pipen when needed. This plugin only handles the input/output files when the working directory is a local path. When the pipeline output directory is a cloud path, the output files will be uploaded to the cloud storage automatically.
 
 ![pipen-gcs](pipen-gcs.png)
 
@@ -42,7 +44,8 @@ if __name__ == "__main__":
     MyPipen(workdir="./.pipen", outdir="./myoutput").run()
 ```
 
-> [!NOTE] When checking the meta information of the jobs, for example, whether a job is cached, the plugin will make `pipen` to use the cloud files.
+> [!NOTE]
+> When checking the meta information of the jobs, for example, whether a job is cached, the plugin will make `pipen` to use the cloud files.
 
 
 ## Configuration

@@ -174,6 +174,28 @@ class PipenGcsPlugin:
                 proc.input.data[inkey] = values
 
     @plugin.impl
+    async def on_job_cached(self, job: Job):
+        """Sync the output files, in case local files are removed"""
+        if (
+            not job.proc.export
+            or not isinstance(job.proc.pipeline.outdir, DualPath)
+            or not isinstance(job.proc.pipeline.outdir.path, CloudPath)
+        ):
+            return
+
+        for outkey, outtype in job._output_types.items():
+            if outtype == ProcOutputType.VAR:
+                continue
+
+            spec_out = getattr(job.output[outkey], "spec", None)
+            if not isinstance(spec_out, CloudPath):
+                continue
+
+            job.log("info", f"Syncing: {job.output[outkey]}", logger=logger)
+            spec_out = self.client.CloudPath(spec_out)
+            spec_out._refresh_cache()
+
+    @plugin.impl
     async def on_job_succeeded(self, job: Job):
         """Upload the output files"""
         if (

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipen-gcs"
-version = "0.1.0a3"
+version = "0.1.0"
 description = "A plugin for pipen to handle file metadata in Google Cloud Storage"
 authors = ["pwwang <1188067+pwwang@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ generate-setup-file = true
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = { version = "^0.16.0a1", allow-prereleases = true }
+pipen = "^0.16.0"
 google-cloud-storage = "^3"
 
 [tool.poetry.group.examples.dependencies]

@@ -11,14 +11,14 @@ generate-setup-file = true
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = "^0.16.0"
+pipen = "0.17.*"
 google-cloud-storage = "^3"
 
 [tool.poetry.group.examples.dependencies]
 python-dotenv = "^1"
 
 [tool.poetry.group.extra.dependencies]
-ipykernel = "^6.29.5"
+ipykernel = "^6"
 
 [build-system]
 requires = ["poetry-core"]

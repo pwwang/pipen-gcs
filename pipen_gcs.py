@@ -7,7 +7,7 @@ from tempfile import gettempdir
 from typing import TYPE_CHECKING, Tuple
 
 from yunpath import GSClient, AnyPath, CloudPath
-from xqute.path import DualPath, MountedPath
+from xqute.path import SpecPath, MountedPath
 from pipen import plugin
 from pipen.defaults import ProcInputType, ProcOutputType
 from pipen.utils import get_logger
@@ -28,11 +28,11 @@ class WrongPathTypeError(Exception):
 
 
 def _process_infile(
-    file: str | PathLike | CloudPath | MountedPath | DualPath,
+    file: str | PathLike | CloudPath,
     client: GSClient,
-) -> Tuple[MountedPath | DualPath, str | None, str]:
+) -> Tuple[MountedPath | SpecPath, str | None, str]:
     """Sync the file to local"""
-    if isinstance(file, (MountedPath, DualPath)):
+    if isinstance(file, (MountedPath, SpecPath)):
         return (
             file,
             "warning",
@@ -48,7 +48,7 @@ def _process_infile(
         file = client.CloudPath(file)
         file._refresh_cache()
         return (
-            DualPath(file, mounted=file.fspath),
+            SpecPath(file, mounted=file.fspath),
             "debug",
             f"Synced: {file}",
         )
@@ -59,7 +59,7 @@ def _process_infile(
         file = client.CloudPath(file)
         file._refresh_cache()
         return (
-            DualPath(file, mounted=file.fspath),
+            SpecPath(file, mounted=file.fspath),
             "debug",
             f"Synced: {file}",
         )
@@ -89,6 +89,8 @@ class PipenGcsPlugin:
         pipen.config.plugin_opts.setdefault("gcs_cache", None)
         # loglevel
         pipen.config.plugin_opts.setdefault("gcs_loglevel", "info")
+        # max number of files to show in the log
+        pipen.config.plugin_opts.setdefault("gcs_logmax", 5)
 
     @plugin.impl
     async def on_start(self, pipen: Pipen):
@@ -114,7 +116,7 @@ class PipenGcsPlugin:
             return
 
         outdir = self.client.CloudPath(pipen.outdir)
-        pipen.outdir = DualPath(outdir, mounted=outdir.fspath)
+        pipen.outdir = SpecPath(outdir, mounted=outdir.fspath)
 
     @plugin.impl
     def on_proc_input_computed(self, proc: Proc):
@@ -122,7 +124,7 @@ class PipenGcsPlugin:
         if proc.name not in [p.name for p in proc.pipeline.starts]:
             return
 
-        max_log = 5  # per inkey
+        max_log = proc.pipeline.config.plugin_opts.get("gcs_logmax", 5)
 
         for inkey, intype in proc.input.type.items():
             if intype == ProcInputType.VAR:
@@ -144,7 +146,8 @@ class PipenGcsPlugin:
                     elif loglevel and log_i == max_log:
                         proc.log(
                             loglevel,
-                            "Not showing more similar messages ...",
+                            "Skipping more similar messages "
+                            "(increase gcs_logmax to show more) ...",
                             logger=logger,
                         )
 
@@ -167,7 +170,8 @@ class PipenGcsPlugin:
                         elif loglevel and log_i == max_log:
                             proc.log(
                                 loglevel,
-                                "Not showing more similar messages ...",
+                                "Skipping more similar messages "
+                                "(increase gcs_logmax to show more) ...",
                                 logger=logger,
                             )
 
@@ -178,8 +182,7 @@ class PipenGcsPlugin:
         """Sync the output files, in case local files are removed"""
         if (
             not job.proc.export
-            or not isinstance(job.proc.pipeline.outdir, DualPath)
-            or not isinstance(job.proc.pipeline.outdir.path, CloudPath)
+            or not isinstance(job.proc.pipeline.outdir, SpecPath)
         ):
             return
 
@@ -192,6 +195,7 @@ class PipenGcsPlugin:
                 continue
 
             job.log("info", f"Syncing: {job.output[outkey]}", logger=logger)
+
             spec_out = self.client.CloudPath(spec_out)
             spec_out._refresh_cache()
 
@@ -200,8 +204,7 @@ class PipenGcsPlugin:
         """Upload the output files"""
         if (
             not job.proc.export
-            or not isinstance(job.proc.pipeline.outdir, DualPath)
-            or not isinstance(job.proc.pipeline.outdir.path, CloudPath)
+            or not isinstance(job.proc.pipeline.outdir, SpecPath)
         ):
             return
 
@@ -214,6 +217,7 @@ class PipenGcsPlugin:
                 continue
 
             job.log("info", f"Uploading: {job.output[outkey]}", logger=logger)
+
             spec_out = self.client.CloudPath(spec_out)
             spec_out._upload_local_to_cloud(force_overwrite_to_cloud=True)
 

@@ -52,5 +52,7 @@ if __name__ == "__main__":
 ## Configuration
 
 - `gcs_cache`: The directory to save the cloud storage files.
+- `gcs_loglevel`: The log level for the plugin. Default is `INFO`.
+- `gcs_logmax`: The maximum number of files to log while syncing. Default is `5`.
 
 [1]: https://github.com/pwwang/pipen

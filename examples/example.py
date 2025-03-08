@@ -31,7 +31,7 @@ class Pipeline(Pipen):
     ]
     outdir = f"gs://{BUCKET}/pipen-gcs/outdir"
     loglevel = "debug"
-    plugin_opts = {"gcs_loglevel": "debug"}
+    plugin_opts = {"gcs_loglevel": "debug", "gcs_logmax": 2}
 
 
 if __name__ == "__main__":

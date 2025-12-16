@@ -15,7 +15,7 @@ from pipen.utils import get_logger
 if TYPE_CHECKING:
     from pipen import Pipen, Proc, Job
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 logger = get_logger("gcs")
 
 

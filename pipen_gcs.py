@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from os import PathLike
 from hashlib import sha256
-from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Tuple
 
-from yunpath import GSClient, AnyPath, CloudPath
+from panpath import PanPath, CloudPath
 from xqute.path import SpecPath, MountedPath
 from pipen import plugin
 from pipen.defaults import ProcInputType, ProcOutputType
@@ -27,9 +26,9 @@ class WrongPathTypeError(Exception):
     """Raised when pipen-gcs cannot handle the path type"""
 
 
-def _process_infile(
-    file: str | PathLike | CloudPath,
-    client: GSClient,
+async def _process_infile(
+    file: str | PathLike,
+    cachedir: PanPath,
 ) -> Tuple[MountedPath | SpecPath, str | None, str]:
     """Sync the file to local"""
     if isinstance(file, (MountedPath, SpecPath)):
@@ -40,31 +39,25 @@ def _process_infile(
             "it already has a paired path.",
         )
 
-    if not isinstance(file, (str, CloudPath)):  # impossible to be a cloud path
+    file = PanPath(file)
+    if not isinstance(file, CloudPath):  # impossible to be a cloud path
         return file, None, None
 
-    if isinstance(file, CloudPath):
-        # Switch client
-        file = client.CloudPath(file)
-        file._refresh_cache()
-        return (
-            SpecPath(file, mounted=file.fspath),
-            "debug",
-            f"Synced: {file}",
-        )
+    fspath = cachedir.joinpath(
+        file.parts[0].replace(":", ""),
+        *file.parts[1:],
+    )
+    await fspath.parent.a_mkdir(parents=True, exist_ok=True)
+    if await file.a_is_dir():
+        await file.a_copytree(fspath)
+    else:
+        await file.a_copy(fspath)
 
-    # str, let's see if it's a cloud path
-    path = AnyPath(file)
-    if isinstance(path, CloudPath) and ":" not in path._no_prefix:
-        file = client.CloudPath(file)
-        file._refresh_cache()
-        return (
-            SpecPath(file, mounted=file.fspath),
-            "debug",
-            f"Synced: {file}",
-        )
-
-    return file, None, None
+    return (
+        SpecPath(file, mounted=fspath),
+        "debug",
+        f"Synced: {file} \u2192 {fspath}",
+    )
 
 
 class PipenGcsPlugin:
@@ -76,7 +69,7 @@ class PipenGcsPlugin:
 
     version = __version__
     name = "gcs"
-    client: GSClient = None
+    gcs_cache: str | PanPath = None
     # Make sure this plugin runs before the main plugin where we check if the
     # output file has been generated.
     priority = -1001
@@ -107,19 +100,24 @@ class PipenGcsPlugin:
         gcs_cache = pipen.config.plugin_opts.get("gcs_cache", None)
         if gcs_cache is None:
             dig = sha256(f"{pipen.workdir}...{pipen.outdir}".encode()).hexdigest()[:8]
-            gcs_cache = Path(gettempdir()) / f"pipen-gcs-{dig}"
-            gcs_cache.mkdir(exist_ok=True)
+            gcs_cache = PanPath(gettempdir()) / f"pipen-gcs-{dig}"
+        else:
+            gcs_cache = PanPath(gcs_cache)
 
-        self.client = GSClient(local_cache_dir=gcs_cache)
+        await gcs_cache.a_mkdir(exist_ok=True)
+
+        self.gcs_cache = gcs_cache
 
         if not isinstance(pipen.outdir, CloudPath):
             return
 
-        outdir = self.client.CloudPath(pipen.outdir)
-        pipen.outdir = SpecPath(outdir, mounted=outdir.fspath)
+        mounted_outdir = gcs_cache / "_outdir"
+        await mounted_outdir.a_mkdir(parents=True, exist_ok=True)
+        # Use SpecPath to pair the cloud path with the mounted local path
+        pipen.outdir = SpecPath(pipen.outdir, mounted=mounted_outdir)
 
     @plugin.impl
-    def on_proc_input_computed(self, proc: Proc):
+    async def on_proc_input_computed(self, proc: Proc):
         """Handle the input files"""
         if proc.name not in [p.name for p in proc.pipeline.starts]:
             return
@@ -136,7 +134,7 @@ class PipenGcsPlugin:
                 values = []
 
                 for f in proc.input.data[inkey]:
-                    value, loglevel, logmsg = _process_infile(f, self.client)
+                    value, loglevel, logmsg = await _process_infile(f, self.gcs_cache)
                     values.append(value)
 
                     if loglevel and log_i < max_log:
@@ -160,7 +158,7 @@ class PipenGcsPlugin:
                     values.append(value)
 
                     for f in fs:
-                        val, loglevel, logmsg = _process_infile(f, self.client)
+                        val, loglevel, logmsg = await _process_infile(f, self.gcs_cache)
                         value.append(val)
 
                         if loglevel and log_i < max_log:
@@ -196,8 +194,15 @@ class PipenGcsPlugin:
 
             job.log("info", f"Syncing: {job.output[outkey]}", logger=logger)
 
-            spec_out = self.client.CloudPath(spec_out)
-            spec_out._refresh_cache()
+            fspath = self.gcs_cache.joinpath(
+                spec_out.parts[0].replace(":", ""),
+                *spec_out.parts[1:],
+            )
+            await fspath.parent.a_mkdir(parents=True, exist_ok=True)
+            if await spec_out.a_is_dir():
+                await spec_out.a_copytree(fspath)
+            else:
+                await spec_out.a_copy(fspath)
 
     @plugin.impl
     async def on_job_succeeded(self, job: Job):
@@ -216,10 +221,13 @@ class PipenGcsPlugin:
             if not isinstance(spec_out, CloudPath):
                 continue
 
-            job.log("info", f"Uploading: {job.output[outkey]}", logger=logger)
+            local_out = PanPath(job.output[outkey])
+            job.log("info", f"Uploading: {local_out}", logger=logger)
 
-            spec_out = self.client.CloudPath(spec_out)
-            spec_out._upload_local_to_cloud(force_overwrite_to_cloud=True)
+            if await local_out.a_is_dir():
+                await local_out.a_copytree(spec_out)
+            else:
+                await local_out.a_copy(spec_out)
 
 
 plugin.register(PipenGcsPlugin())

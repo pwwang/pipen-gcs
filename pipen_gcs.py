@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from os import PathLike
-from hashlib import sha256
-from tempfile import gettempdir
+from os import PathLike, environ
 from typing import TYPE_CHECKING, Tuple
 
 from panpath import PanPath, CloudPath
+from xqute.defaults import DEFAULT_CLOUD_FSPATH
 from xqute.path import SpecPath, MountedPath
 from pipen import plugin
 from pipen.defaults import ProcInputType, ProcOutputType
@@ -99,10 +98,11 @@ class PipenGcsPlugin:
 
         gcs_cache = pipen.config.plugin_opts.get("gcs_cache", None)
         if gcs_cache is None:
-            dig = sha256(f"{pipen.workdir}...{pipen.outdir}".encode()).hexdigest()[:8]
-            gcs_cache = PanPath(gettempdir()) / f"pipen-gcs-{dig}"
-        else:
-            gcs_cache = PanPath(gcs_cache)
+            gcs_cache = environ.get("XQUTE_CLOUD_FSPATH", DEFAULT_CLOUD_FSPATH)
+
+        # save it for other plugins to use
+        pipen.config.plugin_opts["gcs_cache"] = str(gcs_cache)
+        gcs_cache = PanPath(gcs_cache)
 
         await gcs_cache.a_mkdir(exist_ok=True)
 

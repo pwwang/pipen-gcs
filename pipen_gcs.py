@@ -111,7 +111,10 @@ class PipenGcsPlugin:
         if not isinstance(pipen.outdir, CloudPath):
             return
 
-        mounted_outdir = gcs_cache / "_outdir"
+        mounted_outdir = gcs_cache.joinpath(
+            pipen.outdir.parts[0].replace(":", ""),
+            *pipen.outdir.parts[1:],
+        )
         await mounted_outdir.a_mkdir(parents=True, exist_ok=True)
         # Use SpecPath to pair the cloud path with the mounted local path
         pipen.outdir = SpecPath(pipen.outdir, mounted=mounted_outdir)

@@ -11,8 +11,8 @@ generate-setup-file = true
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = "^1.0"
-google-cloud-storage = "^3"
+pipen = {version = "1.1.*", allow-prereleases = true}
+panpath = {version = "^0.4.8", extras = ["async-gs"]}
 
 [tool.poetry.group.examples.dependencies]
 python-dotenv = "^1"

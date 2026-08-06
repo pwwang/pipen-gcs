@@ -1,28 +1,23 @@
-[tool.poetry]
+[project]
 name = "pipen-gcs"
 version = "1.1.2"
 description = "A plugin for pipen to handle file metadata in Google Cloud Storage"
-authors = ["pwwang <1188067+pwwang@users.noreply.github.com>"]
-license = "MIT"
+authors = [{name = "pwwang", email = "1188067+pwwang@users.noreply.github.com"}]
+license = {text = "MIT"}
 readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pipen>=1.1",
+    "panpath[async-gs]>=0.4.8",
+]
 
-[tool.poetry.build]
-generate-setup-file = true
-
-[tool.poetry.dependencies]
-python = "^3.9"
-pipen = {version = "1.1.*", allow-prereleases = true}
-panpath = {version = "^0.4.8", extras = ["async-gs"]}
-
-[tool.poetry.group.examples.dependencies]
-python-dotenv = "^1"
-
-[tool.poetry.group.extra.dependencies]
-ipykernel = "^6"
+[project.optional-dependencies]
+examples = ["python-dotenv>=1"]
+extra = ["ipykernel>=6"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 addopts = "-vv -n 1 --cov-config=.coveragerc --cov=pipen_gcs --cov-report xml:.coverage.xml --cov-report term-missing"

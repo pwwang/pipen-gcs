@@ -22,6 +22,7 @@ class Process2(Proc):
 
 class Pipeline(Pipen):
     starts = Process1
+    cache = False
     data = [
         [
             f"gs://{BUCKET}/pipen-test/channel/test1.txt",

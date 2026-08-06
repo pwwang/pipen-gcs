@@ -12,7 +12,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-examples = ["python-dotenv>=1"]
+examples = [
+    "pipen-verbose>=1.1.4",
+    "python-dotenv>=1",
+]
 extra = ["ipykernel>=6"]
 
 [build-system]
@@ -24,3 +27,6 @@ addopts = "-vv -n 1 --cov-config=.coveragerc --cov=pipen_gcs --cov-report xml:.c
 console_output_style = "progress"
 junit_family = "xunit1"
 filterwarnings = []
+
+[tool.uv]
+prerelease = "allow"

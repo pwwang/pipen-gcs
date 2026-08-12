@@ -1,6 +1,15 @@
-# pipen-gcs
+<div align="center">
+    <img src="./logo.png" width="240px" alt="pipen-gcs logo" />
 
-A plugin for [pipen][1] to handle files in Google Cloud Storage.
+   <p style="font-weight:bold;">
+   A plugin for
+   <a href="https://github.com/pwwang/pipen" target="_blank">pipen</a>
+   to handle files in Google Cloud Storage.
+   </p>
+
+</div>
+
+<hr />
 
 > [!NOTE]
 > Since pipen v0.16.0, it introduced cloud support natively. See [here](https://pwwang.github.io/pipen/cloud/) for more information.
